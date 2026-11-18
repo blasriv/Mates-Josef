@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  getAuthState, signIn, signOut,
+  getAuthState, signIn, signOut, isSupabaseConfigured,
   fetchProducts, fetchCategories, fetchOrders,
   saveProduct, setProductStock, deleteProduct, uploadProductImage,
   addCategory, deleteCategory,
@@ -206,7 +206,13 @@ export default function Admin({ setCurrentPage }) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
         <div className="bg-slate-800 p-8 rounded-xl shadow-2xl border border-slate-700 w-full max-w-md">
-          <h2 className="text-2xl font-bold text-amber-500 mb-2 text-center">Panel RegenerAR</h2>
+          <h2 className="text-2xl font-bold text-amber-500 mb-2 text-center">Panel Mates Josef</h2>
+          {!isSupabaseConfigured && (
+            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-xs text-center leading-relaxed">
+              ⚠️ <strong>Supabase no configurado:</strong><br />
+              Para iniciar sesión y gestionar el catálogo en la nube, primero debés configurar <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_KEY</code> en tu archivo <code>.env</code>.
+            </div>
+          )}
           {authState === 'denied' && (
             <p className="text-red-400 text-xs text-center mb-4">
               Esta cuenta no tiene permisos de administrador.{' '}
@@ -236,7 +242,7 @@ export default function Admin({ setCurrentPage }) {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6 mb-8">
         <div>
           <h1 className="text-3xl font-extrabold text-white">Panel de Control</h1>
-          <p className="text-slate-400 text-sm">Gestión integral de RegenerAR</p>
+          <p className="text-slate-400 text-sm">Gestión integral de Mates Josef</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleExit} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-sm font-medium rounded-lg">Salir del Panel</button>
@@ -339,7 +345,7 @@ export default function Admin({ setCurrentPage }) {
                     </select>
                     <input
                       type="text"
-                      placeholder="N° seguimiento Andreani"
+                      placeholder="N° de seguimiento / Encomienda"
                       defaultValue={order.tracking || ''}
                       onBlur={(e) => handleUpdateTracking(order.id, e.target.value)}
                       className="w-full text-xs bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-white"

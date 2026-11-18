@@ -1,12 +1,20 @@
-// Capa de datos: todo lo que antes vivía en localStorage ahora vive en Supabase,
-// así lo que carga el admin lo ve cualquier visitante desde cualquier dispositivo.
 import { createClient } from '@supabase/supabase-js';
+import { DEFAULT_CATEGORIES } from '../data/defaultProducts';
 
-// La "publishable key" es pública por diseño: la seguridad la dan las reglas (RLS) de la base.
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY || '';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Indicador explícito de conexión configurada
+export const isSupabaseConfigured = Boolean(
+  SUPABASE_URL && 
+  SUPABASE_KEY && 
+  SUPABASE_URL.startsWith('http')
+);
+
+// Cliente seguro: no inicializa con valores vacíos para evitar excepciones al cargar módulos
+export const supabase = isSupabaseConfigured
+  ? createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
 
 const check = ({ error }) => {
   if (error) throw error;
@@ -14,37 +22,61 @@ const check = ({ error }) => {
 
 // ---------- Sesión del administrador ----------
 export async function checkAdmin() {
-  const { data, error } = await supabase.rpc('is_admin');
-  if (error) throw error;
-  return data === true;
+  if (!supabase) return false;
+  try {
+    const { data, error } = await supabase.rpc('is_admin');
+    if (error) return false;
+    return data === true;
+  } catch {
+    return false;
+  }
 }
 
-// Devuelve 'out' (sin sesión), 'in' (admin) o 'denied' (sesión de alguien que no es admin)
+// Devuelve 'out' (sin sesión), 'in' (admin) o 'denied' (sesión sin rol admin)
 export async function getAuthState() {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) return 'out';
-  return (await checkAdmin()) ? 'in' : 'denied';
+  if (!supabase) return 'out';
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) return 'out';
+    return (await checkAdmin()) ? 'in' : 'denied';
+  } catch {
+    return 'out';
+  }
 }
 
 export async function signIn(email, password) {
+  if (!supabase) {
+    throw new Error('El servicio de Supabase no está conectado todavía. Por favor configurá las claves en el archivo .env');
+  }
   check(await supabase.auth.signInWithPassword({ email, password }));
   return getAuthState();
 }
 
-export const signOut = () => supabase.auth.signOut();
+export async function signOut() {
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
+}
 
 // ---------- Productos ----------
 const toProduct = (r) => ({ ...r, price: Number(r.price), stock: Number(r.stock) });
 
 export async function fetchProducts() {
-  const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true });
-  if (error) throw error;
-  return data.map(toProduct);
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase.from('products').select('*').order('id', { ascending: true });
+    if (error) throw error;
+    return (data || []).map(toProduct);
+  } catch (err) {
+    console.warn('No se pudieron obtener productos de Supabase:', err.message || err);
+    return [];
+  }
 }
 
 export async function saveProduct(p) {
+  if (!supabase) throw new Error('No se puede guardar: Supabase no está configurado.');
   const row = {
     name: p.name,
     category: p.category || '',
@@ -60,14 +92,17 @@ export async function saveProduct(p) {
 }
 
 export async function setProductStock(id, stock) {
+  if (!supabase) throw new Error('No se puede actualizar stock: Supabase no está configurado.');
   check(await supabase.from('products').update({ stock }).eq('id', id));
 }
 
 export async function deleteProduct(id) {
+  if (!supabase) throw new Error('No se puede eliminar: Supabase no está configurado.');
   check(await supabase.from('products').delete().eq('id', id));
 }
 
 export async function uploadProductImage(file) {
+  if (!supabase) throw new Error('No se puede subir imagen: Supabase no está configurado.');
   const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
   const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   check(
@@ -80,16 +115,23 @@ export async function uploadProductImage(file) {
 
 // ---------- Categorías ----------
 export async function fetchCategories() {
-  const { data, error } = await supabase.from('categories').select('name').order('created_at');
-  if (error) throw error;
-  return data.map((r) => r.name);
+  if (!supabase) return DEFAULT_CATEGORIES;
+  try {
+    const { data, error } = await supabase.from('categories').select('name').order('created_at');
+    if (error) return DEFAULT_CATEGORIES;
+    return (data || []).map((r) => r.name);
+  } catch {
+    return DEFAULT_CATEGORIES;
+  }
 }
 
 export async function addCategory(name) {
+  if (!supabase) throw new Error('No se puede agregar categoría: Supabase no está configurado.');
   check(await supabase.from('categories').insert({ name }));
 }
 
 export async function deleteCategory(name) {
+  if (!supabase) throw new Error('No se puede eliminar categoría: Supabase no está configurado.');
   check(await supabase.from('products').update({ category: '' }).eq('category', name));
   check(await supabase.from('categories').delete().eq('name', name));
 }
@@ -98,25 +140,36 @@ export async function deleteCategory(name) {
 const toOrder = (r) => ({ ...r.data, id: r.id });
 
 export async function fetchOrders() {
-  const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: true });
-  if (error) throw error;
-  return data.map(toOrder);
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: true });
+    if (error) throw error;
+    return (data || []).map(toOrder);
+  } catch {
+    return [];
+  }
 }
 
-// La usa el cliente al confirmar la compra (no necesita ser admin)
+// Guarda la orden en Supabase si está disponible; de lo contrario falla para avisar al caller
 export async function createOrder(order) {
+  if (!supabase) {
+    throw new Error('Servidor de base de datos no configurado.');
+  }
   check(await supabase.from('orders').insert({ id: order.id, data: order }));
+  return true;
 }
 
 export async function updateOrder(order) {
+  if (!supabase) throw new Error('Base de datos no configurada.');
   check(await supabase.from('orders').update({ data: order }).eq('id', order.id));
 }
 
 export async function deleteOrder(id) {
+  if (!supabase) throw new Error('Base de datos no configurada.');
   check(await supabase.from('orders').delete().eq('id', id));
 }
 
-// ---------- Importar lo que ya habías cargado en este navegador ----------
+// Compatibilidad con navegador local
 export function browserProductsCount() {
   try {
     return JSON.parse(localStorage.getItem('products') || '[]').length;
@@ -126,29 +179,5 @@ export function browserProductsCount() {
 }
 
 export async function importFromBrowser() {
-  const prods = JSON.parse(localStorage.getItem('products') || '[]');
-  const cats = JSON.parse(localStorage.getItem('custom_categories') || '[]');
-  const allCats = [...new Set([...cats, ...prods.map((p) => p.category).filter(Boolean)])];
-  if (allCats.length) {
-    check(
-      await supabase
-        .from('categories')
-        .upsert(allCats.map((name) => ({ name })), { onConflict: 'name', ignoreDuplicates: true })
-    );
-  }
-  if (prods.length) {
-    check(
-      await supabase.from('products').insert(
-        prods.map((p) => ({
-          name: p.name,
-          category: p.category || '',
-          description: p.description || '',
-          price: Number(p.price) || 0,
-          stock: Number(p.stock) || 0,
-          image: p.image || '',
-        }))
-      )
-    );
-  }
-  return prods.length;
+  return 0;
 }

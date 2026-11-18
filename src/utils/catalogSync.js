@@ -4,7 +4,7 @@
 // rutas reales), necesitamos un evento propio para que Home se entere
 // al instante cuando Admin toca localStorage.
 
-export const CATALOG_UPDATED_EVENT = 'regenerar:local-storage-updated';
+export const CATALOG_UPDATED_EVENT = 'mates-josef:local-storage-updated';
 
 export function writeAndNotify(key, value) {
   localStorage.setItem(key, JSON.stringify(value));

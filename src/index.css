@@ -2,325 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
-   HERO — campo de Buenos Aires con tractor animado
-   ============================================================ */
-.hero {
-  position: relative;
-  height: 72vh;
-  min-height: 520px;
-  overflow: hidden;
-  background: #0c0a09;
-  isolation: isolate;
-}
-@media (min-width: 768px) {
-  .hero { height: 82vh; }
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #FAF7F2;
+    color: #2C241E;
+  }
 }
 
-/* Capa de la foto (se mueve con el parallax). Más alta que el hero para que no queden huecos. */
-.hero-layer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -12%;
-  height: 112%;
-  container-type: size;
-  will-change: transform;
-  z-index: 0;
-}
-/* "cover" a mano: así el molino queda siempre pegado al de la foto. */
-.hero-stage {
-  position: absolute;
-  width: max(100cqw, calc(100cqh * 1.38228));
-  height: max(100cqh, calc(100cqw * 0.72345));
-  left: calc((100cqw - max(100cqw, calc(100cqh * 1.38228))) * 0.3);
-  top: calc((100cqh - max(100cqh, calc(100cqw * 0.72345))) * 0.25);
-}
-.hero-photo {
-  display: block;
-  width: 100%;
-  height: 100%;
-  filter: saturate(1.1) contrast(1.05);
-}
-.hero-mill {
-  position: absolute;
-  left: 27.8%;
-  top: 18.5%;
-  width: 5%;
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-}
-.mill-spin {
-  display: block;
-  width: 100%;
-  height: 100%;
-  animation: spin 7s linear infinite;
-}
-@supports not (width: 1cqw) {
-  .hero-stage { inset: 0; width: auto; height: auto; }
-  .hero-photo { object-fit: cover; }
-  .hero-mill { display: none; }
-}
-
-/* Luz de atardecer */
-.hero-sun {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: radial-gradient(circle at 84% 8%, rgba(253, 224, 71, 0.4), transparent 46%);
-  animation: sunPulse 7s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-/* Nubes */
-.hero-cloud {
-  position: absolute;
-  left: 0;
-  z-index: 1;
-  height: auto;
-  filter: blur(1.5px);
-  animation: drift linear infinite;
-  pointer-events: none;
-}
-
-/* Oscurece arriba (para el texto) y funde con el catálogo abajo */
-.hero-shade {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(12, 10, 9, 0.6) 0%,
-    rgba(12, 10, 9, 0.28) 38%,
-    rgba(12, 10, 9, 0.32) 66%,
-    #0c0a09 100%
-  );
-}
-
-/* Pasto */
-.hero-grass {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: clamp(56px, 10vh, 96px);
-  pointer-events: none;
-}
-.grass-back { z-index: 4; opacity: 0.95; }
-.grass-front { z-index: 6; }
-.blade {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: sway ease-in-out infinite alternate;
-}
-
-/* Tractor */
-.hero-tractor {
-  position: absolute;
-  left: 0;
-  bottom: clamp(14px, 3.2vh, 34px);
-  width: clamp(190px, 25vw, 340px);
-  z-index: 5;
-  animation: drive 30s linear infinite;
-  will-change: transform;
-}
-.hero-tractor-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-.tractor-bob {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: bump 0.4s ease-in-out infinite;
-}
-.tractor-wheel {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: spin linear infinite;
-}
-.spin-rear { animation-duration: 3.4s; }
-.spin-front { animation-duration: 1.8s; }
-.dust, .smoke {
-  transform-box: fill-box;
-  transform-origin: center;
+/* Animación de revelado suave al scroll (sin saltos bruscos) */
+.reveal-smooth {
   opacity: 0;
-}
-.dust { animation: dust 2s ease-out infinite; }
-.smoke { animation: smoke 2.4s ease-out infinite; }
-
-/* Texto */
-.hero-content {
-  position: absolute;
-  inset: 0;
-  z-index: 8;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0 1rem 7vh;
-  text-align: center;
-  pointer-events: none;
-}
-.hero-content > * { pointer-events: auto; }
-.hero-kicker {
-  margin: 0 0 0.6rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: #fde68a;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
-}
-.hero-title {
-  margin: 0;
-  font-family: ui-serif, Georgia, Cambria, 'Times New Roman', serif;
-  font-weight: 900;
-  font-size: clamp(3rem, 10vw, 6.5rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  background: linear-gradient(100deg, #fde68a 25%, #ffffff 45%, #fde68a 65%);
-  background-size: 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.6));
-  animation: fadeUp 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both, shine 7s linear 1.2s infinite;
-}
-.hero-title span {
-  -webkit-text-fill-color: #10b981;
-  color: #10b981;
-}
-.hero-sub {
-  margin: 1rem 0 0;
-  max-width: 34rem;
-  font-size: clamp(1rem, 2.2vw, 1.3rem);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: #fef3c7;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
-}
-.hero-cta {
-  margin-top: 1.6rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.85rem 1.8rem;
-  border: 0;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #fff;
-  background: #059669;
-  box-shadow: 0 10px 30px rgba(5, 150, 105, 0.45);
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-.hero-cta:hover { background: #10b981; transform: translateY(-2px) scale(1.03); }
-.hero-cta-arrow { display: inline-block; animation: bounceY 1.4s ease-in-out infinite; }
-
-/* Carrito */
-.hero-cart {
-  position: absolute;
-  right: 1.5rem;
-  bottom: 1.5rem;
-  z-index: 20;
-  padding: 1rem;
-  border: 0;
-  border-radius: 999px;
-  color: #fff;
-  font-size: 1.1rem;
-  line-height: 1;
-  background: #047857;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-.hero-cart:hover { background: #059669; transform: scale(1.1); }
-.hero-cart-badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  background: #dc2626;
+  transform: translateY(18px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
 }
 
-/* Entradas */
-.fade-up { animation: fadeUp 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-.hero-title.fade-up {
-  animation: fadeUp 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both, shine 7s linear 1.2s infinite;
+.reveal-smooth.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-/* Aparecer al hacer scroll (catálogo) */
-.reveal {
-  opacity: 0;
-  transform: translateY(28px) scale(0.98);
-  transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.reveal.is-visible { opacity: 1; transform: none; }
-
-/* Keyframes */
-@keyframes drive {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100vw); }
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes bump {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  30% { transform: translateY(-1.4px) rotate(-0.3deg); }
-  60% { transform: translateY(0.3px) rotate(0.2deg); }
-}
-@keyframes dust {
-  0% { transform: translate(0, 0) scale(0.3); opacity: 0; }
-  15% { opacity: 0.55; }
-  100% { transform: translate(-70px, -20px) scale(1.9); opacity: 0; }
-}
-@keyframes smoke {
-  0% { transform: translate(0, 0) scale(0.4); opacity: 0; }
-  15% { opacity: 0.7; }
-  100% { transform: translate(-28px, -44px) scale(2.3); opacity: 0; }
-}
-@keyframes drift {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100vw); }
-}
-@keyframes sway {
-  from { transform: rotate(-4deg); }
-  to { transform: rotate(4deg); }
-}
-@keyframes sunPulse {
-  from { opacity: 0.65; }
-  to { opacity: 1; }
-}
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(22px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes shine {
-  from { background-position: 150% 0; }
-  to { background-position: -100% 0; }
-}
-@keyframes bounceY {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(4px); }
+/* Efecto de tarjeta de producto: flota y se expande en hover (PC) y en touch/click (móvil) */
+.product-card {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.25s ease;
+  will-change: transform, box-shadow;
 }
 
-/* Accesibilidad: sin movimiento si el usuario lo pidió */
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 16px 28px -6px rgba(22, 32, 42, 0.12), 0 6px 12px -4px rgba(139, 94, 60, 0.15);
+    border-color: #8B5E3C;
+  }
+}
+
+.product-card:active {
+  transform: scale(1.03) translateY(-3px);
+  box-shadow: 0 14px 24px -6px rgba(22, 32, 42, 0.18);
+  border-color: #8B5E3C;
+}
+
+/* Scrollbar estilizada en tonos Mates Josef (Azul Noche y Marrón) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #16202A;
+}
+::-webkit-scrollbar-thumb {
+  background: #8B5E3C;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9C6D47;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .hero *, .hero { animation: none !important; }
-  .fade-up, .hero-title { opacity: 1 !important; transform: none !important; }
-  .hero-tractor { transform: translateX(45vw); }
-  .reveal { opacity: 1; transform: none; transition: none; }
+  .reveal-smooth, .product-card {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }

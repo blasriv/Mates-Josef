@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Aparece con fade + subida suave cuando entra en pantalla.
+/**
+ * Reveal: Revelación suave al hacer scroll anticipando la visibilidad para eliminar saltos bruscos.
+ */
 export default function Reveal({ children, delay = 0, className = '' }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
@@ -11,23 +13,28 @@ export default function Reveal({ children, delay = 0, className = '' }) {
       setVisible(true);
       return;
     }
-    const io = new IntersectionObserver(
+
+    const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setVisible(true);
-          io.disconnect();
+          observer.disconnect();
         }
       },
-      { threshold: 0.12 }
+      { 
+        rootMargin: '100px 0px -20px 0px', 
+        threshold: 0.05 
+      }
     );
-    io.observe(el);
-    return () => io.disconnect();
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   return (
     <div
       ref={ref}
-      className={`reveal ${visible ? 'is-visible' : ''} ${className}`}
+      className={`reveal-smooth ${visible ? 'is-visible' : ''} ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}

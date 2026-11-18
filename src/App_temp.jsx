@@ -17,7 +17,7 @@ export default function App() {
     <CartProvider>
       <div className="min-h-screen bg-gray-50 text-gray-900">
         <nav className="bg-green-700 text-white p-4 shadow flex justify-between items-center">
-          <span className="font-bold text-xl cursor-pointer" onClick={() => setCurrentPage('home')}>AgroTienda</span>
+          <span className="font-bold text-xl cursor-pointer" onClick={() => setCurrentPage('home')}>Mates Josef</span>
           <button onClick={() => setCurrentPage('admin')} className="hover:underline bg-green-800 px-3 py-1 rounded text-sm">Admin</button>
         </nav>
         <main>{renderPage()}</main>
